@@ -8,15 +8,20 @@ from pypdf import PdfReader
 from openai import OpenAI
 
 # =========================================================
-# Default Sample PDF (repo 내 포함, 매우 중요)
+# Sample PDFs (repo 내 포함)
 # =========================================================
-DEFAULT_SAMPLE_PDF = "머신러닝 기반의 지방상수도 관 파손사고 감지 및 누수관리 시스템 개발.pdf"
+SAMPLE_PDFS = {
+    "배수지 최적 운영 (기본)": "배수지최적운영.pdf",
+    "머신러닝 기반 지방상수도 누수관리": "머신러닝 기반의 지방상수도 관 파손사고 감지 및 누수관리 시스템 개발.pdf",
+}
+
+DEFAULT_SAMPLE_KEY = "배수지 최적 운영 (기본)"
 
 # =========================================================
 # App Config
 # =========================================================
 st.set_page_config(
-    page_title="K-water 수도관리 AI 봇 (요약 · 예측 · 운영보조) 26.01.22 4pm",
+    page_title="K-water 수도관리 AI 봇 (요약 · 예측 · 운영보조)",
     page_icon="💧",
     layout="wide",
 )
@@ -56,7 +61,7 @@ SYSTEM_PROMPT = """
 
 [원칙]
 - 의사결정 보조자이며 최종 결정자는 인간
-- 모든 제안은 근거와 불확실성 명시
+- 모든 제안은 근거와 불확실성을 명시
 - 단정적 표현 금지
 
 [응답 구조]
@@ -123,8 +128,8 @@ def summarize_report(text: str, model: str) -> SummaryResult:
     for i, ch in enumerate(chunks, 1):
         prompt = f"""
 다음은 K-water 상하수도 보고서 일부이다 (chunk {i}/{len(chunks)}).
-- 수치/지표/공정 중심 요약
-- 연구 및 운영 관점 포함
+- 수치/지표/운영 중심 요약
+- 실무/연구 관점 포함
 - 10~12줄 이내
 
 [원문]
@@ -173,21 +178,27 @@ tab1, tab2 = st.tabs(["1️⃣ 보고서 요약", "2️⃣ 수도관리 봇 초�
 with tab1:
     st.subheader("보고서 선택")
 
-    use_sample = st.checkbox(
-        "📄 샘플 보고서 사용 (머신러닝 기반 지방상수도 누수관리)",
-        value=True,
-    )
+    use_sample = st.checkbox("📄 샘플 보고서 사용", value=True)
 
     uploaded = None
     sample_loaded = False
+    selected_sample_name = None
 
     if use_sample:
-        if DEFAULT_SAMPLE_PDF and os.path.exists(DEFAULT_SAMPLE_PDF):
-            uploaded = DEFAULT_SAMPLE_PDF
+        selected_sample_name = st.radio(
+            "샘플 보고서 선택",
+            list(SAMPLE_PDFS.keys()),
+            index=list(SAMPLE_PDFS.keys()).index(DEFAULT_SAMPLE_KEY),
+        )
+
+        selected_path = SAMPLE_PDFS[selected_sample_name]
+
+        if os.path.exists(selected_path):
+            uploaded = selected_path
             sample_loaded = True
-            st.success("샘플 PDF가 자동 선택되었습니다.")
+            st.success(f"선택된 샘플: {selected_sample_name}")
         else:
-            st.error(f"샘플 PDF 파일을 찾을 수 없습니다: {DEFAULT_SAMPLE_PDF}")
+            st.error(f"샘플 PDF 파일을 찾을 수 없습니다: {selected_path}")
     else:
         uploaded = st.file_uploader("PDF 업로드", type=["pdf"])
 
@@ -200,13 +211,19 @@ with tab1:
                 raw_text = extract_pdf_text(uploaded)
 
             st.session_state.summary = summarize_report(raw_text, DEFAULT_MODEL)
+            st.session_state.sample_name = selected_sample_name
 
     if "summary" in st.session_state:
         s = st.session_state.summary
+        if "sample_name" in st.session_state and st.session_state.sample_name:
+            st.caption(f"📘 사용된 보고서: {st.session_state.sample_name}")
+
         st.subheader("통합 요약")
         st.write(s.merged)
+
         st.subheader("실무 브리프")
         st.write(s.key_points)
+
         st.subheader("용어집")
         st.write(s.glossary)
 
@@ -222,10 +239,10 @@ with tab2:
                 draft = call_llm(
                     f"""{SYSTEM_PROMPT}
 
-다음 보고서 요약을 바탕으로
-K-water 수도관리 AI 봇 기획 초안을 작성하라.
+이 보고서는 '{st.session_state.get("sample_name", "사용자 업로드")}' 기반이다.
+이를 바탕으로 K-water 수도관리 AI 봇 기획 초안을 작성하라.
 
-[요약]
+[보고서 요약]
 {st.session_state.summary.merged}
 """,
                     DEFAULT_MODEL,
