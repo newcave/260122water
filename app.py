@@ -277,7 +277,7 @@ def generate_bot_draft(summary: str, model: str) -> str:
 # =========================================================
 # UI
 # =========================================================
-st.title("💧 K-water 수도관리 AI 봇")
+st.title("💧 K-water 수도관리 AI 봇, 26.01.22 4pm")
 
 with st.sidebar:
     st.header("설정")
