@@ -298,12 +298,42 @@ if "messages" not in st.session_state:
 # ---------------------------
 # TAB 1: Summary
 # ---------------------------
+
 with tab1:
-    uploaded = st.file_uploader("K-water 상하수도 PDF 업로드", type=["pdf"])
+    st.subheader("보고서 선택")
+
+    use_sample = st.checkbox(
+        "📄 샘플 보고서 사용 (머신러닝 기반 지방상수도 누수관리)",
+        value=True
+    )
+
+    uploaded = None
+    sample_loaded = False
+
+    if use_sample:
+        if os.path.exists(DEFAULT_SAMPLE_PDF):
+            uploaded = DEFAULT_SAMPLE_PDF
+            sample_loaded = True
+            st.success("샘플 PDF가 자동 선택되었습니다.")
+        else:
+            st.error("샘플 PDF 파일을 찾을 수 없습니다. GitHub 경로를 확인하세요.")
+    else:
+        uploaded = st.file_uploader(
+            "K-water 상하수도 PDF 업로드",
+            type=["pdf"]
+        )
+
     if uploaded and st.button("요약 생성"):
         with st.spinner("요약 생성 중..."):
-            raw_text = extract_pdf_text(uploaded)
+            if sample_loaded:
+                with open(uploaded, "rb") as f:
+                    raw_text = extract_pdf_text(f)
+            else:
+                raw_text = extract_pdf_text(uploaded)
+
             st.session_state.summary = summarize_report(raw_text, model)
+
+    
 
     if st.session_state.summary:
         s = st.session_state.summary
