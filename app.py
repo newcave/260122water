@@ -11,7 +11,7 @@ from openai import OpenAI
 # App Config
 # =========================================================
 st.set_page_config(
-    page_title="K-water 수도관리 AI 봇 (요약 · 예측 · 운영보조)",
+    page_title="K-water 수도관리 AI 봇 (요약 · 예측 · 운영보조) 26.01.22 4pm",
     page_icon="💧",
     layout="wide",
 )
