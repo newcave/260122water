@@ -298,7 +298,6 @@ if "messages" not in st.session_state:
 # ---------------------------
 # TAB 1: Summary
 # ---------------------------
-
 with tab1:
     st.subheader("보고서 선택")
 
@@ -311,14 +310,12 @@ with tab1:
     sample_loaded = False
 
     if use_sample:
-       if DEFAULT_SAMPLE_PDF and os.path.exists(DEFAULT_SAMPLE_PDF):
-    uploaded = DEFAULT_SAMPLE_PDF
-    sample_loaded = True
-else:
-    st.error(f"샘플 PDF 파일을 찾을 수 없습니다: {DEFAULT_SAMPLE_PDF}")
+        if DEFAULT_SAMPLE_PDF and os.path.exists(DEFAULT_SAMPLE_PDF):
+            uploaded = DEFAULT_SAMPLE_PDF
+            sample_loaded = True
             st.success("샘플 PDF가 자동 선택되었습니다.")
         else:
-            st.error("샘플 PDF 파일을 찾을 수 없습니다. GitHub 경로를 확인하세요.")
+            st.error(f"샘플 PDF 파일을 찾을 수 없습니다: {DEFAULT_SAMPLE_PDF}")
     else:
         uploaded = st.file_uploader(
             "K-water 상하수도 PDF 업로드",
@@ -334,6 +331,7 @@ else:
                 raw_text = extract_pdf_text(uploaded)
 
             st.session_state.summary = summarize_report(raw_text, model)
+
 
     
 
