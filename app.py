@@ -16,6 +16,18 @@ st.set_page_config(
     layout="wide",
 )
 
+# --- Sidebar Hide ---
+st.markdown(
+    """
+    <style>
+        [data-testid="stSidebar"] {
+            display: none;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 # =========================================================
 # OpenAI Client
 # =========================================================
@@ -29,6 +41,7 @@ def init_openai() -> Tuple[OpenAI, str]:
 
     os.environ["OPENAI_API_KEY"] = api_key
     return OpenAI(), model
+
 
 
 client, DEFAULT_MODEL = init_openai()
