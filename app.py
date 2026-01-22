@@ -311,9 +311,11 @@ with tab1:
     sample_loaded = False
 
     if use_sample:
-        if os.path.exists(DEFAULT_SAMPLE_PDF):
-            uploaded = DEFAULT_SAMPLE_PDF
-            sample_loaded = True
+       if DEFAULT_SAMPLE_PDF and os.path.exists(DEFAULT_SAMPLE_PDF):
+    uploaded = DEFAULT_SAMPLE_PDF
+    sample_loaded = True
+else:
+    st.error(f"샘플 PDF 파일을 찾을 수 없습니다: {DEFAULT_SAMPLE_PDF}")
             st.success("샘플 PDF가 자동 선택되었습니다.")
         else:
             st.error("샘플 PDF 파일을 찾을 수 없습니다. GitHub 경로를 확인하세요.")
